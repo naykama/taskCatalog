@@ -13,4 +13,8 @@ class TaskService(private val taskRepository: TaskRepository) {
     fun createTask(request: TaskCreateDto): Mono<Task> {
         return taskRepository.save(request.title!!, request.description, TaskStatus.NEW)
     }
+
+    fun getById(id: Long): Mono<Task> {
+        return taskRepository.findById(id)
+    }
 }

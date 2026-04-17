@@ -10,6 +10,7 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -25,13 +26,14 @@ class TaskController(
 
     ) {
 
-    @GetMapping
-    @Operation(summary = "Получить все задачи")
-//    fun getAll(): Flux<Task> = ...
-    fun getAll(): String = "Hello"
-//    @GetMapping("/{id}")
-//    @Operation(summary = "Получить задачу по ID")
-//    fun getById(@PathVariable id: Long): Mono<Task> = ...
+    @GetMapping("/{id}")
+    @Operation(summary = "Получить задачу по ID")
+    fun getById(@PathVariable id: Long): Mono<ResponseEntity<Task>> =
+        taskService.getById(id)
+            .map {ResponseEntity.status(HttpStatus.OK).body(it)}
+            .defaultIfEmpty(
+                ResponseEntity.status( HttpStatus.NOT_FOUND).build()
+            )
 
     @PostMapping
     @Operation(summary = "Создать задачу")

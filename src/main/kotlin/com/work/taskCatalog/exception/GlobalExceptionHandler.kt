@@ -77,18 +77,8 @@ class GlobalExceptionHandler {
 //            throw ex // Прокидываем для обработки другим handler
 //        }
 //    }
-//    // 404 - Ресурс не найден
-//    @ExceptionHandler(TaskNotFoundException::class)
-//    fun handleNotFound(ex: TaskNotFoundException): ResponseEntity<ErrorResponse> {
-//        return ResponseEntity
-//            .status(HttpStatus.NOT_FOUND)
-//            .body(ErrorResponse(
-//                status = 404,
-//                error = "Not Found",
-//                code = ErrorCode.NOT_FOUND,
-//                message = ex.message ?: "Resource not found"
-//            ))
-//    }
+
+
 //    // 503 - Ошибка подключения к БД
 //    @ExceptionHandler(SQLException::class)
 //    fun handleSql(ex: SQLException): ResponseEntity<ErrorResponse> {
