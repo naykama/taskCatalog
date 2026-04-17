@@ -1,14 +1,13 @@
 package com.work.taskCatalog.repository
 
+import com.work.taskCatalog.dto.TaskCreateDto
 import com.work.taskCatalog.model.Task
 import com.work.taskCatalog.model.TaskStatus
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.simple.JdbcClient
-
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-import java.sql.ResultSet
 import java.time.LocalDateTime
 
 @Repository

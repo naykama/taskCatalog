@@ -8,13 +8,9 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
 @Service
-class TaskService  (private val taskRepository: TaskRepository) {
+class TaskService(private val taskRepository: TaskRepository) {
+
     fun createTask(request: TaskCreateDto): Mono<Task> {
-        val status = TaskStatus.NEW
-        return taskRepository.save(
-            title = request.title,
-            description = request.description,
-            status = status
-        )
+        return taskRepository.save(request.title!!, request.description, TaskStatus.NEW)
     }
 }
