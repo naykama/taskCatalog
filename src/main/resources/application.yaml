@@ -5,6 +5,10 @@ spring:
     url: jdbc:postgresql://localhost:5435/taskdb
     username: postgres
     password: postgres
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
 springdoc:
   api-docs:
     path: /v3/api-docs

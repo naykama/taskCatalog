@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS tasks (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    status VARCHAR(50) NOT NULL DEFAULT 'NEW' CHECK (status IN ('NEW', 'IN_PROGRESS', 'DONE', 'CANCELLED')),
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
+);
