@@ -37,7 +37,7 @@ class TaskRepositoryTest {
                 .single()
         } returns 1L
 
-        val result = taskRepository.save(dto.title!!, dto.description).block()
+        val result = taskRepository.save(dto).block()
         assertNotNull(result)
         assertEquals(dto.title, result.title)
         assertEquals(dto.description, result.description)

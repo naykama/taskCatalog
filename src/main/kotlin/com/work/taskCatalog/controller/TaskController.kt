@@ -1,7 +1,10 @@
 package com.work.taskCatalog.controller
 
+import com.work.taskCatalog.dto.SliceTaskDto
 import com.work.taskCatalog.dto.TaskCreateDto
+import com.work.taskCatalog.dto.TaskDto
 import com.work.taskCatalog.model.Task
+import com.work.taskCatalog.model.TaskStatus
 import com.work.taskCatalog.service.TaskService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -22,7 +25,7 @@ class TaskController(
 
     @GetMapping("/{id}")
     @Operation(summary = "Получить задачу по ID")
-    fun findById(@PathVariable id: Long): Mono<ResponseEntity<Task>> =
+    fun findById(@PathVariable id: Long): Mono<ResponseEntity<TaskDto>> =
         taskService.findById(id)
             .map {ResponseEntity.ok(it)}
             .defaultIfEmpty(
@@ -31,17 +34,17 @@ class TaskController(
 
     @PostMapping
     @Operation(summary = "Создать задачу")
-    fun createTask(@Valid @RequestBody request: TaskCreateDto): Mono<ResponseEntity<Task>> =
+    fun createTask(@Valid @RequestBody request: TaskCreateDto): Mono<ResponseEntity<TaskDto>> =
         taskService.createTask(request)
             .map { ResponseEntity.status(HttpStatus.CREATED).body(it) }
 
-//    @GetMapping
-//    @Operation(summary = "Получить задачи")
-//    fun getTasks(
-//        @RequestParam page: Int,
-//        @RequestParam size: Int,
-//        @RequestParam(required = false) status: TaskStatus?
-//    ): Mono<ResponseEntity<SliceTaskDto>> =
-//        taskService.getTasks(page, size, status)
-//            .map { ResponseEntity.ok(it) }
+    @GetMapping
+    @Operation(summary = "Получить задачи")
+    fun getTasks(
+        @RequestParam page: Int,
+        @RequestParam size: Int,
+        @RequestParam(required = false) status: TaskStatus?
+    ): Mono<ResponseEntity<SliceTaskDto>> =
+        taskService.getTasks(page, size, status)
+            .map { ResponseEntity.ok(it) }
 }

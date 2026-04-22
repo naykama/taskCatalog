@@ -1,6 +1,7 @@
 package com.work.taskCatalog.controller
 
 import com.work.taskCatalog.dto.TaskCreateDto
+import com.work.taskCatalog.dto.TaskDto
 import com.work.taskCatalog.model.Task
 import com.work.taskCatalog.model.TaskStatus
 import com.work.taskCatalog.service.TaskService
@@ -40,7 +41,7 @@ class TaskControllerTest (
             updatedAt = LocalDateTime.now()
         )
         Mockito.`when`(taskService.createTask(request))
-            .thenReturn(Mono.just(savedTask))
+            .thenReturn(Mono.just(TaskDto(savedTask)))
 
         webTestClient.post()
             .uri("/api/tasks")
@@ -113,7 +114,7 @@ class TaskControllerTest (
             updatedAt = LocalDateTime.now()
         )
         Mockito.`when`(taskService.findById(savedTask.id))
-            .thenReturn(Mono.just(savedTask))
+            .thenReturn(Mono.just(TaskDto(savedTask)))
 
         webTestClient.get()
             .uri("/api/tasks/${savedTask.id}")
@@ -127,7 +128,7 @@ class TaskControllerTest (
     fun findByIdNotFoundTest() {
         Mockito.`when`(taskService.findById(any()))
             .thenReturn(Mono
-                .fromCallable { null as Task? }
+                .fromCallable { null as TaskDto? }
                 .subscribeOn(Schedulers.boundedElastic()))
 
         webTestClient.get()

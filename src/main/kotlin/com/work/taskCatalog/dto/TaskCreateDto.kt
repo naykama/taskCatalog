@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size
 
 data class TaskCreateDto (
 
-    @field:NotNull(message = "Title cannot be null")
+    @field:NotNull(message = "Title is required")
     @field:Size(min = 3, max = 100, message = "Title must be 3-100 characters")
     val title: String?,
 

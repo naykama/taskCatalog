@@ -1,6 +1,7 @@
 package com.work.taskCatalog.service
 
 import com.work.taskCatalog.dto.TaskCreateDto
+import com.work.taskCatalog.dto.TaskDto
 import com.work.taskCatalog.model.Task
 import com.work.taskCatalog.model.TaskStatus
 import com.work.taskCatalog.repository.TaskRepository
@@ -37,8 +38,8 @@ class TaskServiceTest (
     fun createTaskTest() {
         val request = TaskCreateDto(title = "Test Task", description = "Test Description")
         val savedTask = initTask(request.title!!, request.description)
-        whenever(taskRepository.save(request.title, request.description))
-            .thenReturn(Mono.just(savedTask))
+        whenever(taskRepository.save(request))
+            .thenReturn(Mono.just(TaskDto(savedTask)))
 
         val result = taskService.createTask(request).block()
         assertNotNull(result)
@@ -52,7 +53,7 @@ class TaskServiceTest (
     fun findByIdSuccessTest() {
         val savedTask = initTask(title = "Test Task", description = "Test Description")
         whenever(taskRepository.findById(savedTask.id))
-            .thenReturn(Mono.just(savedTask))
+            .thenReturn(Mono.just(TaskDto(savedTask)))
 
         val result = taskService.findById(savedTask.id).block()
         assertNotNull(result)
@@ -68,7 +69,7 @@ class TaskServiceTest (
     fun findByIdNotFoundTest() {
         whenever(taskRepository.findById(any()))
             .thenReturn(Mono
-                .fromCallable { null as Task? }
+                .fromCallable { null as TaskDto? }
                 .subscribeOn(Schedulers.boundedElastic()))
 
         val result = taskService.findById(1)
