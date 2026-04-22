@@ -1,6 +1,5 @@
 package com.work.taskCatalog.repository
 
-import com.work.taskCatalog.dto.TaskCreateDto
 import com.work.taskCatalog.model.Task
 import com.work.taskCatalog.model.TaskStatus
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,18 +13,19 @@ import kotlin.jvm.optionals.getOrNull
 @Repository
 class TaskRepository(@Autowired private val jdbcClient: JdbcClient) {
 
-    fun save(title: String, description: String?, status: TaskStatus): Mono<Task> = Mono
-        .fromCallable { executeInsert(title, description, status) }
+    fun save(title: String, description: String?): Mono<Task> = Mono
+        .fromCallable { executeInsert(title, description) }
         .subscribeOn(Schedulers.boundedElastic())
 
-    fun findById(id: Long): Mono<Task> = Mono
+        fun findById(id: Long): Mono<Task> = Mono
         .fromCallable { executeFindById(id) }          // Блокирующий вызов
         .subscribeOn(Schedulers.boundedElastic())
 
-    private fun executeInsert(title: String, description: String?, status: TaskStatus): Task {
+    private fun executeInsert(title: String, description: String?): Task {
         val now = LocalDateTime.now()
+        val status = TaskStatus.NEW
         val id = jdbcClient.sql(
-        """
+            """
             INSERT INTO tasks (title, description, status, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?)
             RETURNING id
@@ -40,10 +40,19 @@ class TaskRepository(@Autowired private val jdbcClient: JdbcClient) {
     private fun executeFindById(id: Long): Task? =
         jdbcClient.sql(
             "SELECT * FROM tasks WHERE id = ?",
-            )
+        )
             .params(id)
             .query(Task::class.java)
             .optional().getOrNull()
 
+//    private fun executeFindAll(page: Int, size: Int, status: TaskStatus?): SliceTaskDto {
+//            jdbcClient.sql(
+//                """
+//                    SELECT * FROM tasks
+//                    WHERE id = ?
+//                """
+//
+//            )
+//    }
 
 }

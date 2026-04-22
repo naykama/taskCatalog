@@ -2,19 +2,13 @@ package com.work.taskCatalog.controller
 
 import com.work.taskCatalog.dto.TaskCreateDto
 import com.work.taskCatalog.model.Task
-import com.work.taskCatalog.repository.TaskRepository
 import com.work.taskCatalog.service.TaskService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
 @RestController
@@ -28,9 +22,9 @@ class TaskController(
 
     @GetMapping("/{id}")
     @Operation(summary = "Получить задачу по ID")
-    fun getById(@PathVariable id: Long): Mono<ResponseEntity<Task>> =
-        taskService.getById(id)
-            .map {ResponseEntity.status(HttpStatus.OK).body(it)}
+    fun findById(@PathVariable id: Long): Mono<ResponseEntity<Task>> =
+        taskService.findById(id)
+            .map {ResponseEntity.ok(it)}
             .defaultIfEmpty(
                 ResponseEntity.status( HttpStatus.NOT_FOUND).build()
             )
@@ -40,4 +34,14 @@ class TaskController(
     fun createTask(@Valid @RequestBody request: TaskCreateDto): Mono<ResponseEntity<Task>> =
         taskService.createTask(request)
             .map { ResponseEntity.status(HttpStatus.CREATED).body(it) }
+
+//    @GetMapping
+//    @Operation(summary = "Получить задачи")
+//    fun getTasks(
+//        @RequestParam page: Int,
+//        @RequestParam size: Int,
+//        @RequestParam(required = false) status: TaskStatus?
+//    ): Mono<ResponseEntity<SliceTaskDto>> =
+//        taskService.getTasks(page, size, status)
+//            .map { ResponseEntity.ok(it) }
 }
