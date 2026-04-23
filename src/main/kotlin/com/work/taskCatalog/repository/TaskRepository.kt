@@ -32,6 +32,13 @@ class TaskRepository(@Autowired private val jdbcClient: JdbcClient) {
         .fromCallable { executeFindAll(page, size, status) }
         .subscribeOn(Schedulers.boundedElastic())
 
+    fun updateStatus(id: Long, newStatus: TaskStatus): Mono<TaskDto> {
+        val taskDto = executeUpdateStatus(id, newStatus)
+        return Mono
+            .fromCallable { taskDto }
+            .subscribeOn(Schedulers.boundedElastic())
+    }
+
     private fun executeInsert(title: String, description: String?): TaskDto {
         val now = LocalDateTime.now()
         val status = TaskStatus.NEW
@@ -40,7 +47,7 @@ class TaskRepository(@Autowired private val jdbcClient: JdbcClient) {
             INSERT INTO tasks (title, description, status, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?)
             RETURNING id
-        """
+        """.trimIndent()
         )
             .params(listOf(title, description, status.name, now, now))
             .query(Long::class.java)
@@ -61,7 +68,7 @@ class TaskRepository(@Autowired private val jdbcClient: JdbcClient) {
     }
 
 
-    private fun executeFindAll(page: Int, size: Int, status: TaskStatus?): SliceTaskDto {
+    private fun executeFindAll(page: Int, size: Int, status: TaskStatus?): SliceTaskDto? {
         val offset = page * size
 
         val sql = buildString {
@@ -105,7 +112,6 @@ class TaskRepository(@Autowired private val jdbcClient: JdbcClient) {
                 totalCount = rs.getLong("total_count")
             )
         }.list()
-
         val tasks = tasksWithTotal.map { it.task }.map { TaskDto(it) }
         val totalElements = tasksWithTotal.firstOrNull()?.totalCount ?: 0L
 
@@ -114,14 +120,35 @@ class TaskRepository(@Autowired private val jdbcClient: JdbcClient) {
         } else {
             0
         }
+        return if (tasks.isEmpty()) {
+            null
+        } else {
+            SliceTaskDto(
+                content = tasks,
+                page = page,
+                size = size,
+                totalElements = totalElements,
+                totalPages = totalPages
+            )
+        }
 
-        return SliceTaskDto(
-            content = tasks,
-            page = page,
-            size = size,
-            totalElements = totalElements,
-            totalPages = totalPages
+    }
+
+    private fun executeUpdateStatus(id: Long, newStatus: TaskStatus): TaskDto? {
+        val taskDto = jdbcClient.sql(
+            """
+                update tasks
+                set status = :status, updated_at = now()
+                where id = :id
+                returning *
+            """.trimIndent()
         )
+            .params(mapOf("id" to id, "status" to newStatus.name))
+            .query(Task::class.java)
+            .optional()
+            .map { TaskDto(it) }
+            .orElse(null)
+        return taskDto
     }
 
 }

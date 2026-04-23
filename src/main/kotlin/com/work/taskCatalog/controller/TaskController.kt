@@ -3,7 +3,7 @@ package com.work.taskCatalog.controller
 import com.work.taskCatalog.dto.SliceTaskDto
 import com.work.taskCatalog.dto.TaskCreateDto
 import com.work.taskCatalog.dto.TaskDto
-import com.work.taskCatalog.model.Task
+import com.work.taskCatalog.dto.UpdateStatusDto
 import com.work.taskCatalog.model.TaskStatus
 import com.work.taskCatalog.service.TaskService
 import io.swagger.v3.oas.annotations.Operation
@@ -47,4 +47,19 @@ class TaskController(
     ): Mono<ResponseEntity<SliceTaskDto>> =
         taskService.getTasks(page, size, status)
             .map { ResponseEntity.ok(it) }
+            .defaultIfEmpty(
+                ResponseEntity.status( HttpStatus.NOT_FOUND).build()
+            )
+
+    @PatchMapping("/{id}/status")
+    @Operation(summary = "Изменить статус задачи")
+    fun updateStatus(
+        @PathVariable id: Long,
+        @Valid @RequestBody newStatusDto: UpdateStatusDto
+    ): Mono<ResponseEntity<TaskDto>> =
+        taskService.updateStatus(id, TaskStatus.valueOf(newStatusDto.status!!))
+            .map { ResponseEntity.ok(it) }
+            .defaultIfEmpty(
+                ResponseEntity.status( HttpStatus.NOT_FOUND).build()
+            )
 }
