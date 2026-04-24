@@ -26,4 +26,8 @@ class TaskService(private val taskRepository: TaskRepository) {
     fun updateStatus(id: Long, newStatus: TaskStatus): Mono<TaskDto> {
         return taskRepository.updateStatus(id, newStatus)
     }
+
+    fun deleteById(id: Long): Mono<Int> {
+        return taskRepository.deleteById(id)
+    }
 }

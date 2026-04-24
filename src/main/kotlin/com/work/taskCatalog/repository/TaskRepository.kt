@@ -39,6 +39,10 @@ class TaskRepository(@Autowired private val jdbcClient: JdbcClient) {
             .subscribeOn(Schedulers.boundedElastic())
     }
 
+    fun deleteById(id: Long): Mono<Int> = Mono
+        .fromCallable { executeDeleteById(id) }
+        .subscribeOn(Schedulers.boundedElastic())
+
     private fun executeInsert(title: String, description: String?): TaskDto {
         val now = LocalDateTime.now()
         val status = TaskStatus.NEW
@@ -149,6 +153,12 @@ class TaskRepository(@Autowired private val jdbcClient: JdbcClient) {
             .map { TaskDto(it) }
             .orElse(null)
         return taskDto
+    }
+
+    private fun executeDeleteById(id: Long): Int {
+        return jdbcClient.sql("DELETE FROM tasks WHERE id = :id")
+            .param("id", id)
+            .update()
     }
 
 }

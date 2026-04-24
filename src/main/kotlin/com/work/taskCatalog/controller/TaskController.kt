@@ -7,6 +7,7 @@ import com.work.taskCatalog.dto.UpdateStatusDto
 import com.work.taskCatalog.model.TaskStatus
 import com.work.taskCatalog.service.TaskService
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -27,9 +28,9 @@ class TaskController(
     @Operation(summary = "Получить задачу по ID")
     fun findById(@PathVariable id: Long): Mono<ResponseEntity<TaskDto>> =
         taskService.findById(id)
-            .map {ResponseEntity.ok(it)}
+            .map { ResponseEntity.ok(it) }
             .defaultIfEmpty(
-                ResponseEntity.status( HttpStatus.NOT_FOUND).build()
+                ResponseEntity.status(HttpStatus.NOT_FOUND).build()
             )
 
     @PostMapping
@@ -48,7 +49,7 @@ class TaskController(
         taskService.getTasks(page, size, status)
             .map { ResponseEntity.ok(it) }
             .defaultIfEmpty(
-                ResponseEntity.status( HttpStatus.NOT_FOUND).build()
+                ResponseEntity.status(HttpStatus.NOT_FOUND).build()
             )
 
     @PatchMapping("/{id}/status")
@@ -60,6 +61,21 @@ class TaskController(
         taskService.updateStatus(id, TaskStatus.valueOf(newStatusDto.status!!))
             .map { ResponseEntity.ok(it) }
             .defaultIfEmpty(
-                ResponseEntity.status( HttpStatus.NOT_FOUND).build()
+                ResponseEntity.status(HttpStatus.NOT_FOUND).build()
             )
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Удалить задачу")
+    @ApiResponse(responseCode = "204")
+    fun deleteById(
+        @PathVariable id: Long
+    ): Mono<ResponseEntity<Void>> =
+        taskService.deleteById(id)
+            .flatMap { rowsAffected ->
+                if (rowsAffected > 0) {
+                    Mono.just(ResponseEntity.noContent().build())
+                } else {
+                    Mono.just(ResponseEntity.notFound().build())
+                }
+            }
 }
