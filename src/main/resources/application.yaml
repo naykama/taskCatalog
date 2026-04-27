@@ -2,16 +2,32 @@ spring:
   application:
     name: taskCatalog
   datasource:
-    url: jdbc:postgresql://localhost:5435/taskdb
-    username: postgres
-    password: postgres
-  sql:
-    init:
-      mode: always
-      schema-locations: classpath:schema.sql
+    url: jdbc:postgresql://localhost:5432/taskdb?currentSchema=public
+    username: task_user
+    password: task_pass
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+#  liquibase:
+#    enabled: true
+#    liquibase-schema: liquibase
+#    user: liquibase_user
+#    password: liquibase_pass
+#    url: jdbc:postgresql://localhost:5432/taskdb?currentSchema=liquibase
+#    drop-first: false
+#logging:
+#  level: DEBUG
+
+#  sql:
+#    init:
+#      mode: always
+#      schema-locations: classpath:schema.sql
 springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
     url: /v3/api-docs
+logging:
+  level:
+    org.springframework.boot.autoconfigure: DEBUG

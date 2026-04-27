@@ -28,11 +28,11 @@ class TaskRepositoryTest {
             mockJdbcClient.sql(
                 """
             INSERT INTO tasks (title, description, status, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (:title, :description, :status, :created_at, :updated_at)
             RETURNING id
-        """
+        """.trimIndent()
             )
-                .params(any<List<Any>>())
+                .params(any<Map<String, Any>>())
                 .query(Long::class.java)
                 .single()
         } returns 1L

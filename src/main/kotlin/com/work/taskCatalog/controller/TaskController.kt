@@ -41,12 +41,12 @@ class TaskController(
 
     @GetMapping
     @Operation(summary = "Получить задачи")
-    fun getTasks(
+    fun findTasks(
         @RequestParam page: Int,
         @RequestParam size: Int,
         @RequestParam(required = false) status: TaskStatus?
     ): Mono<ResponseEntity<SliceTaskDto>> =
-        taskService.getTasks(page, size, status)
+        taskService.findTasks(page, size, status)
             .map { ResponseEntity.ok(it) }
             .defaultIfEmpty(
                 ResponseEntity.status(HttpStatus.NOT_FOUND).build()

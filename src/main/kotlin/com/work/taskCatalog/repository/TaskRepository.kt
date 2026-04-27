@@ -28,8 +28,8 @@ class TaskRepository(@Autowired private val jdbcClient: JdbcClient) {
         .fromCallable { executeFindById(id) }          // Блокирующий вызов
         .subscribeOn(Schedulers.boundedElastic())
 
-    fun findAll(page: Int, size: Int, status: TaskStatus?): Mono<SliceTaskDto> = Mono
-        .fromCallable { executeFindAll(page, size, status) }
+    fun findTasks(page: Int, size: Int, status: TaskStatus?): Mono<SliceTaskDto> = Mono
+        .fromCallable { executeFindTasks(page, size, status) }
         .subscribeOn(Schedulers.boundedElastic())
 
     fun updateStatus(id: Long, newStatus: TaskStatus): Mono<TaskDto> {
@@ -49,11 +49,11 @@ class TaskRepository(@Autowired private val jdbcClient: JdbcClient) {
         val id = jdbcClient.sql(
             """
             INSERT INTO tasks (title, description, status, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (:title, :description, :status, :created_at, :updated_at)
             RETURNING id
         """.trimIndent()
         )
-            .params(listOf(title, description, status.name, now, now))
+            .params(mapOf("title" to title, "description" to description, "status" to status.name, "created_at" to now, "updated_at" to now))
             .query(Long::class.java)
             .single()
         val task = Task(id, title, description, status, now, now)
@@ -62,9 +62,9 @@ class TaskRepository(@Autowired private val jdbcClient: JdbcClient) {
 
     private fun executeFindById(id: Long): TaskDto? {
         return jdbcClient.sql(
-            "SELECT * FROM tasks WHERE id = ?",
+            "SELECT * FROM tasks WHERE id = :id",
         )
-            .params(id)
+            .param("id",id)
             .query(Task::class.java)
             .optional()
             .map { TaskDto(it) }
@@ -72,7 +72,7 @@ class TaskRepository(@Autowired private val jdbcClient: JdbcClient) {
     }
 
 
-    private fun executeFindAll(page: Int, size: Int, status: TaskStatus?): SliceTaskDto? {
+    private fun executeFindTasks(page: Int, size: Int, status: TaskStatus?): SliceTaskDto? {
         val offset = page * size
 
         val sql = buildString {

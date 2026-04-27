@@ -19,8 +19,8 @@ class TaskService(private val taskRepository: TaskRepository) {
         return taskRepository.findById(id)
     }
 
-    fun getTasks(page: Int, size: Int, status: TaskStatus?): Mono<SliceTaskDto> {
-        return taskRepository.findAll(page, size, status)
+    fun findTasks(page: Int, size: Int, status: TaskStatus?): Mono<SliceTaskDto> {
+        return taskRepository.findTasks(page, size, status)
     }
 
     fun updateStatus(id: Long, newStatus: TaskStatus): Mono<TaskDto> {
