@@ -8,6 +8,7 @@ REST-сервис для управления задачами
 - Spring JdbcClient
 - PostgreSQL
 - Swagger
+- Liquebase
 
 ## Запуск сервиса
 
