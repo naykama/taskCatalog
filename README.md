@@ -19,11 +19,11 @@ REST-сервис для управления задачами
 ```
 После запуска интерфейс будет доступен по URL:
 
-[http://localhost:8080](http://localhost:8080)
+[http://localhost:8088](http://localhost:8088)
 
 URL Swagger REST API:
 
-[http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+[http://localhost:8088/swagger-ui/index.html](http://localhost:8088/swagger-ui/index.html)
 
 
 Команда для остановки и удаления приложения:
@@ -37,22 +37,17 @@ URL Swagger REST API:
   docker compose down -v
 ```
 
-Команда для удаления созданных образов сервисов приложения:
-
-```cmd
-  docker image ls -q taskCatalog-* | xargs docker image rm
-```
-
 ### Локальный запуск
 
 Предварительные требования:
 - Java 21
 - PostgreSQL 16.x
 
-БД должна быть доступна по localhost:5432, необходимо запустить последовательно скрипты из src/main/resources/db:
-- init.sql (Создание пользователя и БД taskdb)
-- init_liquebase.sql (Создание пользователя и схемы для liquebase)
-
+БД должна быть доступна по localhost:5432, необходимо запустить последовательно скрипты из src/main/resources/db/local:
+- 001_init.sql (Создание пользователя и БД taskdb)
+- Переключиться на базу данных taskdb
+- 002_grant_role.sql (Передача прав на public task_user)
+- 003_init_liquebase.sql (создание schema для liquebase)
 
 Запуск сервиса:
 ```cmd
@@ -61,11 +56,11 @@ URL Swagger REST API:
 
 После запуска интерфейс будет доступен по URL:
 
-[http://localhost:8088](http://localhost:8088)
+[http://localhost:8080](http://localhost:8080)
 
 URL Swagger REST API:
 
-[http://localhost:8088/swagger-ui/index.html](http://localhost:8088/swagger-ui/index.html)
+[http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
 
 ## Запуск тестов
@@ -77,6 +72,8 @@ URL Swagger REST API:
 ```cmd
   ./mvnw clean verify
 ```
+## Возможные проблемы при локальном запуске
+
 Если по умолчанию подтягивается более ранняя jdk и возникает ошибка:
 ```
 [ERROR] org/junit/platform/launcher/Launcher has been compiled by a more recent version of the Java Runtime... 

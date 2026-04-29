@@ -1,0 +1,5 @@
+CREATE SCHEMA IF NOT EXISTS liquibase;
+
+GRANT ALL PRIVILEGES ON SCHEMA liquibase TO task_user;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA liquibase TO task_user;
+ALTER SCHEMA liquibase OWNER TO task_user;

@@ -160,7 +160,7 @@ class TaskControllerTest (
     @Test
     fun updateTaskNotCorrectStatusTest() {
         webTestClient.patch()
-            .uri("/api/tasks/1")
+            .uri("/api/tasks/1/status")
             .body(BodyInserters.fromValue(UpdateStatusDto("False_status")))
             .exchange()
             .expectStatus().isBadRequest()

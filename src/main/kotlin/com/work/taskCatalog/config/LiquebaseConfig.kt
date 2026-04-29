@@ -8,11 +8,11 @@ import javax.sql.DataSource
 @Configuration
 class LiquibaseConfig {
 
-    @Value("\${LIQUIBASE_URL:jdbc:postgresql://localhost:5432/taskdb}")
+    @Value("\${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/taskdb}")
     private lateinit var url: String
-    @Value("\${LIQUIBASE_USERNAME:liquibase_user}")
+    @Value("\${SPRING_DATASOURCE_USERNAME:task_user}")
     private lateinit var username: String
-    @Value("\${LIQUIBASE_PASSWORD:liquibase_pass}")
+    @Value("\${SPRING_DATASOURCE_PASSWORD:task_pass}")
     private lateinit var password: String
 
     @Bean
