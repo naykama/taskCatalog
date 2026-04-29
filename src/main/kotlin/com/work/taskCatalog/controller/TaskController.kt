@@ -35,6 +35,7 @@ class TaskController(
 
     @PostMapping
     @Operation(summary = "Создать задачу")
+    @ApiResponse(responseCode = "201")
     fun createTask(@Valid @RequestBody request: TaskCreateDto): Mono<ResponseEntity<TaskDto>> =
         taskService.createTask(request)
             .map { ResponseEntity.status(HttpStatus.CREATED).body(it) }

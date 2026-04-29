@@ -11,6 +11,9 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      LIQUIBASE_URL: jdbc:postgresql://postgres:5432/taskdb
+      LIQUIBASE_USERNAME: liquibase_user
+      LIQUIBASE_PASSWORD: liquibase_pass
     depends_on:
       postgres:
         condition: service_healthy
@@ -26,6 +29,7 @@ services:
       - "5435:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./src/main/resources/db/init_liquebase.sql:/docker-entrypoint-initdb.d/01-init_liquibase.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s

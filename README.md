@@ -10,23 +10,21 @@ REST-сервис для управления задачами
 - Swagger
 
 ## Запуск сервиса
-После запуска интерфейс будет доступен по URL:
 
-[http://localhost:8080](http://localhost:8080)
-
-Документация Swagger REST API доступна по URL:
-
-[http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
-
-URL к OpenAPI в json:
-
-[http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 ### Запуск в Docker
 В случае доступности Docker Compose можно установить и запустить приложение командой:
 
 ```cmd
   docker compose up --build --detach
 ```
+После запуска интерфейс будет доступен по URL:
+
+[http://localhost:8080](http://localhost:8080)
+
+URL Swagger REST API:
+
+[http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+
 
 Команда для остановки и удаления приложения:
 
@@ -51,18 +49,34 @@ URL к OpenAPI в json:
 - Java 21
 - PostgreSQL 16.x
 
-БД должна быть доступна по localhost:5432, в ней должна быть создана БД скриптом postgres/init.sql.
+БД должна быть доступна по localhost:5432, необходимо запустить последовательно скрипты из src/main/resources/db:
+- init.sql (Создание пользователя и БД taskdb)
+- init_liquebase.sql (Создание пользователя и схемы для liquebase)
+
 
 Запуск сервиса:
 ```cmd
   ./mvnw spring-boot:run
 ```
 
+После запуска интерфейс будет доступен по URL:
+
+[http://localhost:8088](http://localhost:8088)
+
+URL Swagger REST API:
+
+[http://localhost:8088/swagger-ui/index.html](http://localhost:8088/swagger-ui/index.html)
+
+
 ## Запуск тестов
 
 Предварительные требования:
 - Java 21
 
+Интеграционный тест contextLoads() выключен, запустятся только Unit тесты. Команда для запуска тестов:
+```cmd
+  ./mvnw clean verify
+```
 Если по умолчанию подтягивается более ранняя jdk и возникает ошибка:
 ```
 [ERROR] org/junit/platform/launcher/Launcher has been compiled by a more recent version of the Java Runtime... 
@@ -72,8 +86,4 @@ URL к OpenAPI в json:
 $env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
 ```
 
-Интеграционный тест contextLoads() выключен, запустятся только Unit тесты. Команда для запуска тестов:
-```cmd
-  ./mvnw clean verify
-```
 

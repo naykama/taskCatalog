@@ -1,4 +1,4 @@
-CREATE USER task_user WITH PASSWORD 'task_pass';
+CREATE USER IF NOT EXISTS task_user WITH PASSWORD 'task_pass';
 CREATE DATABASE taskdb;
 GRANT ALL PRIVILEGES ON DATABASE taskdb TO task_user;
 ALTER SCHEMA public OWNER TO task_user;

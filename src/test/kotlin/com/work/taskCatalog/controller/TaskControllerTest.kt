@@ -1,7 +1,9 @@
 package com.work.taskCatalog.controller
 
+import com.work.taskCatalog.dto.SliceTaskDto
 import com.work.taskCatalog.dto.TaskCreateDto
 import com.work.taskCatalog.dto.TaskDto
+import com.work.taskCatalog.dto.UpdateStatusDto
 import com.work.taskCatalog.model.Task
 import com.work.taskCatalog.model.TaskStatus
 import com.work.taskCatalog.service.TaskService
@@ -15,6 +17,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import java.sql.SQLException
 import java.time.LocalDateTime
 import kotlin.test.Test
 
@@ -32,14 +35,7 @@ class TaskControllerTest (
     @Test
     fun createTaskSuccessTest() {
         val request = TaskCreateDto(title = "Test Task", description = "Test Description")
-        val savedTask = Task(
-            id = 1,
-            title = request.title!!,
-            description = request.description,
-            status = TaskStatus.NEW,
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now()
-        )
+        val savedTask = createTask(1)
         Mockito.`when`(taskService.createTask(request))
             .thenReturn(Mono.just(TaskDto(savedTask)))
 
@@ -105,14 +101,7 @@ class TaskControllerTest (
 
     @Test
     fun findByIdSuccessTest() {
-        val savedTask = Task(
-            id = 1,
-            title = "title",
-            description = "description",
-            status = TaskStatus.NEW,
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now()
-        )
+        val savedTask = createTask(1)
         Mockito.`when`(taskService.findById(savedTask.id))
             .thenReturn(Mono.just(TaskDto(savedTask)))
 
@@ -136,4 +125,138 @@ class TaskControllerTest (
             .exchange()
             .expectStatus().isNotFound
     }
+
+    @Test
+    fun findTasksSuccessTest() {
+        val page = 1
+        val size = 2
+        val savedTask = createTask(1)
+        Mockito.`when`(taskService.findTasks(page, size, TaskStatus.NEW))
+            .thenReturn(Mono
+                .fromCallable { SliceTaskDto(listOf(TaskDto(savedTask)), 1, 2, 2, 1) }
+                .subscribeOn(Schedulers.boundedElastic()))
+
+        webTestClient.get()
+            .uri("/api/tasks?page=$page&size=$size&status=NEW")
+            .exchange()
+            .expectStatus().isOk
+    }
+
+    @Test
+    fun findTasksNotFoundTest() {
+        val page = 2
+        val size = 2
+        Mockito.`when`(taskService.findTasks(page, size, TaskStatus.NEW))
+            .thenReturn(Mono
+                .fromCallable { null as SliceTaskDto? }
+                .subscribeOn(Schedulers.boundedElastic()))
+
+        webTestClient.get()
+            .uri("/api/tasks?page=$page&size=$size&status=NEW")
+            .exchange()
+            .expectStatus().isNotFound
+    }
+
+    @Test
+    fun updateTaskNotCorrectStatusTest() {
+        webTestClient.patch()
+            .uri("/api/tasks/1")
+            .body(BodyInserters.fromValue(UpdateStatusDto("False_status")))
+            .exchange()
+            .expectStatus().isBadRequest()
+    }
+
+    @Test
+    fun updateTaskNotFoundTest() {
+        val id = 1L
+        val status = TaskStatus.CANCELLED
+        Mockito.`when`(taskService.updateStatus(id, status))
+            .thenReturn(Mono
+                .fromCallable { null as TaskDto? }
+                .subscribeOn(Schedulers.boundedElastic()))
+
+        webTestClient.patch()
+            .uri("/api/tasks/$id/status")
+            .body(BodyInserters.fromValue(UpdateStatusDto(status.name)))
+            .exchange()
+            .expectStatus().isNotFound()
+    }
+
+    @Test
+    fun updateTaskSuccessTest() {
+        val id = 1L
+        val status = TaskStatus.CANCELLED
+        Mockito.`when`(taskService.updateStatus(id, status))
+            .thenReturn(Mono
+                .fromCallable { TaskDto(createTask(id)) }
+                .subscribeOn(Schedulers.boundedElastic()))
+
+        webTestClient.patch()
+            .uri("/api/tasks/$id/status")
+            .body(BodyInserters.fromValue(UpdateStatusDto(status.name)))
+            .exchange()
+            .expectStatus().isOk()
+    }
+
+    @Test
+    fun deleteNotFoundTest() {
+        val id = 1L
+        Mockito.`when`(taskService.deleteById(id))
+            .thenReturn(Mono
+                .fromCallable { 0 }
+                .subscribeOn(Schedulers.boundedElastic()))
+
+        webTestClient.delete()
+            .uri("/api/tasks/$id")
+            .exchange()
+            .expectStatus().isNotFound
+    }
+
+    @Test
+    fun deleteSuccessTest() {
+        val id = 1L
+        Mockito.`when`(taskService.deleteById(id))
+            .thenReturn(Mono
+                .fromCallable { 1 }
+                .subscribeOn(Schedulers.boundedElastic()))
+
+        webTestClient.delete()
+            .uri("/api/tasks/$id")
+            .exchange()
+            .expectStatus().isNoContent
+    }
+
+    @Test
+    fun internalErrorTest() {
+        val id = 1L
+        Mockito.`when`(taskService.deleteById(id))
+            .thenReturn(Mono.error(RuntimeException("Internal error")))
+
+        webTestClient.delete()
+            .uri("/api/tasks/$id")
+            .exchange()
+            .expectStatus().isEqualTo(500)
+    }
+
+    @Test
+    fun databaseErrorTest() {
+        val id = 1L
+        Mockito.`when`(taskService.deleteById(id))
+            .thenReturn(Mono.error(SQLException("database error")))
+
+        webTestClient.delete()
+            .uri("/api/tasks/$id")
+            .exchange()
+            .expectStatus().isEqualTo(503)
+    }
+
+    private fun createTask(id: Long): Task =
+    Task(
+        id = id,
+        title = "title_$id",
+        description = "description_$id",
+        status = TaskStatus.NEW,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now()
+    )
 }

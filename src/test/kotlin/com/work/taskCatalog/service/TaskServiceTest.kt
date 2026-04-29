@@ -1,5 +1,6 @@
 package com.work.taskCatalog.service
 
+import com.work.taskCatalog.dto.SliceTaskDto
 import com.work.taskCatalog.dto.TaskCreateDto
 import com.work.taskCatalog.dto.TaskDto
 import com.work.taskCatalog.model.Task
@@ -77,6 +78,35 @@ class TaskServiceTest (
             .expectNextCount(0)  // Ожидаем 0 элементов
             .verifyComplete()
         assertNull(result.block())
+    }
+
+    @Test
+    fun findTasksTest() {
+        val savedTask = initTask(title = "Test Task", description = "Test Description")
+        whenever(taskRepository.findTasks(0, 2, TaskStatus.NEW))
+            .thenReturn(Mono.just(SliceTaskDto(listOf(TaskDto(savedTask)), 0, 2, 1L, 1)))
+
+        val result = taskService.findTasks(0, 2, TaskStatus.NEW).block()
+        assertNotNull(result)
+    }
+
+    @Test
+    fun updateStatusTest() {
+        val savedTask = initTask(title = "Test Task", description = "Test Description")
+        whenever(taskRepository.updateStatus(savedTask.id, TaskStatus.NEW))
+            .thenReturn(Mono.just(TaskDto(savedTask)))
+
+        val result = taskService.updateStatus(savedTask.id, savedTask.status).block()
+        assertNotNull(result)
+    }
+
+    @Test
+    fun deleteByIdTest() {
+        whenever(taskRepository.deleteById(1L))
+            .thenReturn(Mono.just(1))
+
+        val result = taskService.deleteById(1L).block()
+        assertEquals(1, result)
     }
 
     private fun initTask(title: String, description: String?): Task {

@@ -1,15 +1,22 @@
 package com.work.taskCatalog.exception
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.bind.support.WebExchangeBindException
+import org.springframework.web.reactive.resource.NoResourceFoundException
 import org.springframework.web.server.ServerWebInputException
+import java.sql.SQLException
 import java.time.LocalDateTime
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
+
+    private val log: Logger = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
+
     // 400 - Ошибки валидации (@Valid)
     @ExceptionHandler(WebExchangeBindException::class)
     fun handleValidation(ex: WebExchangeBindException): ResponseEntity<MutableMap<String, Any>> {
@@ -23,27 +30,7 @@ class GlobalExceptionHandler {
                 "rejectedValue" to (error.rejectedValue ?: "")
             )
         }
-
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(errors)
-    }
-
-    //требуется проверить!!!
-    //400 - Нарушение constraint (CHECK, NOT NULL)
-//    @ExceptionHandler(DataIntegrityViolationException::class)
-    @ExceptionHandler(Exception::class)
-    fun handleConstraint(ex: Exception): ResponseEntity<MutableMap<String, Any>> {
-        val message = when {
-            ex.message?.contains("CHECK constraint") == true ->
-                "Invalid value for field: ${ex.message}"
-            ex.message?.contains("not-null") == true ->
-                "Field cannot be null: ${ex.message}"
-            else -> "Data integrity violation: ${ex.message}"
-        }
-        val errors = mutableMapOf<String, Any>()
-        errors["timestamp"] = LocalDateTime.now().toString()
-        errors["message"] = message
+        log.error("Validation error: $ex")
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
             .body(errors)
@@ -51,56 +38,39 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(ServerWebInputException::class)
     fun handleHttpMessageNotReadableException(ex: ServerWebInputException): ResponseEntity<MutableMap<String, Any>> {
-        val cause = ex.cause// ServerWebInputException -> DecodingException -> MissingKotlinParameterException
+        val cause = ex.cause
         print("exception: $ex, cause = $cause stackTrace: ${ex.stackTraceToString()}")
         val errors = mutableMapOf<String, Any>()
         errors["timestamp"] = LocalDateTime.now().toString()
         errors["message"] = ex.message
+        log.error("Web Input error: $ex, \nstackTrace: ${ex.stackTraceToString()}")
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
             .body(errors)
     }
 
-//    // 409 - Дубликат (unique constraint)
-//    @ExceptionHandler(DataIntegrityViolationException::class)
-//    fun handleDuplicate(ex: DataIntegrityViolationException): ResponseEntity<ErrorResponse> {
-//        return if (ex.message?.contains("unique") == true) {
-//            ResponseEntity
-//                .status(HttpStatus.CONFLICT)
-//                .body(ErrorResponse(
-//                    status = 409,
-//                    error = "Conflict",
-//                    code = ErrorCode.DUPLICATE_ENTRY,
-//                    message = "Record already exists"
-//                ))
-//        } else {
-//            throw ex // Прокидываем для обработки другим handler
-//        }
-//    }
 
+    // 503 - Ошибка подключения к БД
+    @ExceptionHandler(SQLException::class)
+    fun handleSql(ex: SQLException): ResponseEntity<MutableMap<String, Any>> {
+        val errors = mutableMapOf<String, Any>()
+        errors["timestamp"] = LocalDateTime.now().toString()
+        errors["message"] = "DataBase error: $ex"
+        log.error("Internal SQL error: $ex, \nstackTrace: ${ex.stackTraceToString()}")
+        return ResponseEntity
+            .status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body(errors)
+    }
 
-//    // 503 - Ошибка подключения к БД
-//    @ExceptionHandler(SQLException::class)
-//    fun handleSql(ex: SQLException): ResponseEntity<ErrorResponse> {
-//        return ResponseEntity
-//            .status(HttpStatus.SERVICE_UNAVAILABLE)
-//            .body(ErrorResponse(
-//                status = 503,
-//                error = "Service Unavailable",
-//                code = ErrorCode.SERVICE_UNAVAILABLE,
-//                message = "Database connection error"
-//            ))
-//    }
-//    // 500 - Непредвиденная ошибка
-//    @ExceptionHandler(Exception::class)
-//    fun handleGeneral(ex: Exception): ResponseEntity<ErrorResponse> {
-//        return ResponseEntity
-//            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-//            .body(ErrorResponse(
-//                status = 500,
-//                error = "Internal Server Error",
-//                code = ErrorCode.INTERNAL_ERROR,
-//                message = "An unexpected error occurred"
-//            ))
-//    }
+    // 500 - Непредвиденная ошибка
+    @ExceptionHandler(Exception::class)
+    fun handleGeneral(ex: Exception): ResponseEntity<MutableMap<String, Any>> {
+        val errors = mutableMapOf<String, Any>()
+        errors["timestamp"] = LocalDateTime.now().toString()
+        errors["message"] = "Internal error: $ex"
+        log.error("Unexpected error: $ex, \nstackTrace: ${ex.stackTraceToString()}")
+        return ResponseEntity
+            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(errors)
+    }
 }
